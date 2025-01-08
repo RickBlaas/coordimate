@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:go_router/go_router.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -40,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
 
       // Use a mounted check before navigating
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        context.go('/homepage');
       }
       return null; // Login successful
     } else {
@@ -89,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
       onSubmitAnimationCompleted: () {
         // Navigate only if the widget is still mounted
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          context.go('/homepage');
         }
       },
       hideForgotPasswordButton: true,
