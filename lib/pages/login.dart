@@ -36,13 +36,19 @@ class _LoginPageState extends State<LoginPage> {
     logger.d('Response body: ${response.body}');
     if (response.statusCode == 200) {
       final responseJson = jsonDecode(response.body);
-      final jwt = responseJson['token'];
+      final jwt = responseJson['data']['token'];
+      final userId = responseJson['data']['id'];
+      logger.d('token test login: $jwt');
+
       // Store the JWT securely
       await storage.write(key: 'jwt', value: jwt);
 
+      // Store the user ID securely
+      await storage.write(key: 'user_id', value: userId.toString());
+
       // Use a mounted check before navigating
       if (mounted) {
-        context.go('/homepage');
+        context.go('/home');
       }
       return null; // Login successful
     } else {

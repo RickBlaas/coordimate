@@ -1,7 +1,14 @@
+import 'package:coordimate/pages/create_team.dart';
+import 'package:coordimate/pages/edit_team.dart';
 import 'package:coordimate/pages/home.dart';
+// import 'package:coordimate/pages/teams.dart';
+// import 'package:coordimate/pages/all_teams.dart';
+import 'package:coordimate/pages/my_teams.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'pages/login.dart';  // Import the login page
+import 'pages/team.dart';
+import 'models/team.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +23,30 @@ final GoRouter _router = GoRouter(
       builder: ( context, state) => const LoginPage(),
     ),
     GoRoute(
-      path: '/homepage',
-      builder: ( context, state) => const Home(),
+      path: '/home',
+      builder: ( context, state) => const HomePage(),
+    ),
+    GoRoute(
+      path: '/myteams',
+      builder: ( context, state) => const MyTeamsPage(),
+    ),
+    GoRoute(
+      path: '/teams/create',
+      builder: ( context, state) => const CreateTeamPage(),
+    ),
+    GoRoute(
+      path: '/teams/:id',
+      builder: ( context, state) {
+        final teamId = int.parse(state.pathParameters['id']!);
+        return TeamPage(teamId: teamId);
+      },
+    ),
+    GoRoute(
+      path: '/teams/:id/edit',
+      builder: (context, state) {
+        final team = state.extra as Team;
+        return EditTeamPage(team: team);
+      },
     ),
   ],
 );
