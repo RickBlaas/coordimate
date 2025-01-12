@@ -6,7 +6,7 @@ import 'package:coordimate/pages/home.dart';
 import 'package:coordimate/pages/my_teams.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'pages/login.dart';  // Import the login page
+import 'pages/login.dart';  
 import 'pages/team.dart';
 import 'models/team.dart';
 
