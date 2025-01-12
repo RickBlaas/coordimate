@@ -4,9 +4,10 @@ import 'package:coordimate/pages/home.dart';
 // import 'package:coordimate/pages/teams.dart';
 // import 'package:coordimate/pages/all_teams.dart';
 import 'package:coordimate/pages/my_teams.dart';
+import 'package:coordimate/pages/events/create_event.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'pages/login.dart';  // Import the login page
+import 'pages/login.dart'; // Import the login page
 import 'pages/team.dart';
 import 'models/team.dart';
 
@@ -20,23 +21,23 @@ final GoRouter _router = GoRouter(
   routes: <RouteBase>[
     GoRoute(
       path: '/',
-      builder: ( context, state) => const LoginPage(),
+      builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
       path: '/home',
-      builder: ( context, state) => const HomePage(),
+      builder: (context, state) => const HomePage(),
     ),
     GoRoute(
       path: '/myteams',
-      builder: ( context, state) => const MyTeamsPage(),
+      builder: (context, state) => const MyTeamsPage(),
     ),
     GoRoute(
       path: '/teams/create',
-      builder: ( context, state) => const CreateTeamPage(),
+      builder: (context, state) => const CreateTeamPage(),
     ),
     GoRoute(
       path: '/teams/:id',
-      builder: ( context, state) {
+      builder: (context, state) {
         final teamId = int.parse(state.pathParameters['id']!);
         return TeamPage(teamId: teamId);
       },
@@ -46,6 +47,13 @@ final GoRouter _router = GoRouter(
       builder: (context, state) {
         final team = state.extra as Team;
         return EditTeamPage(team: team);
+      },
+    ),
+    GoRoute(
+      path: '/teams/:teamId/events/create',
+      builder: (context, state) {
+        final teamId = int.parse(state.pathParameters['teamId']!);
+        return CreateEventPage(teamId: teamId);
       },
     ),
   ],

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 class TeamPage extends StatefulWidget {
   final int teamId;
-  
+
   const TeamPage({super.key, required this.teamId});
 
   @override
@@ -23,7 +23,7 @@ class _TeamPageState extends State<TeamPage> {
   Team? _team;
   bool _isLoading = true;
   int? _currentUserId;
-  
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +36,7 @@ class _TeamPageState extends State<TeamPage> {
     super.dispose();
   }
 
-  // Load team details 
+  // Load team details
   Future<void> _loadData() async {
     try {
       // Get current user ID and put it in _currentUserId
@@ -45,7 +45,7 @@ class _TeamPageState extends State<TeamPage> {
 
       // Fetch team details from TeamsService API
       final team = await _teamsService.getTeam(widget.teamId);
-      
+
       setState(() {
         _team = team;
         _isLoading = false;
@@ -57,7 +57,6 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to remove member as an owner
   Future<void> _removeMember(TeamMember member) async {
-
     // Manage snackbar messages
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -85,7 +84,7 @@ class _TeamPageState extends State<TeamPage> {
       try {
         // Call API to remove member
         await _teamsService.removeMember(widget.teamId, member.id);
-        
+
         // Refresh team data and show successful snackbar message
         _loadData();
         scaffoldMessenger.showSnackBar(
@@ -120,11 +119,10 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to add member as an owner
   Future<void> _showAddMemberDialog() async {
-    
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    
+
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -152,7 +150,7 @@ class _TeamPageState extends State<TeamPage> {
     );
 
     // Check if the owner confirmed to add member and widget still exists
-    if (confirmed == true && mounted) {   
+    if (confirmed == true && mounted) {
       // Get user ID from input
       final userId = int.tryParse(_userIdController.text);
 
@@ -160,8 +158,8 @@ class _TeamPageState extends State<TeamPage> {
         try {
           // Call API to add member
           await _teamsService.addMember(widget.teamId, userId);
-          
-          // Refresh team data and clear input field 
+
+          // Refresh team data and clear input field
           _loadData();
           _userIdController.clear();
         } catch (e) {
@@ -176,7 +174,6 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to leave team as a member
   Future<void> _showLeaveConfirmation() async {
-    
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = context.go;
@@ -217,13 +214,12 @@ class _TeamPageState extends State<TeamPage> {
     }
   }
 
-  // Dialog to delete a team as an owner 
+  // Dialog to delete a team as an owner
   Future<void> _showDeleteConfirmation() async {
-  
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = context.go;
-    
+
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -250,7 +246,7 @@ class _TeamPageState extends State<TeamPage> {
         await _teamsService.deleteTeam(widget.teamId);
 
         // Navigate back to my teams list
-        navigator('/myteams'); 
+        navigator('/myteams');
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
@@ -272,7 +268,7 @@ class _TeamPageState extends State<TeamPage> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-  
+
     // Show error message if team not found
     if (_team == null) {
       return Scaffold(
@@ -286,7 +282,7 @@ class _TeamPageState extends State<TeamPage> {
 
     // Check if current user is team owner
     final isOwner = _team!.ownerId == _currentUserId;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -309,7 +305,7 @@ class _TeamPageState extends State<TeamPage> {
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: _showDeleteConfirmation,
             ),
-          ] 
+          ]
           // Show leave button only for members
           else if (_team!.members.any((m) => m.id == _currentUserId)) ...[
             IconButton(
@@ -323,19 +319,16 @@ class _TeamPageState extends State<TeamPage> {
       body: ListView.builder(
         itemCount: _team!.members.length,
         itemBuilder: (context, index) {
-
           final member = _team!.members[index];
           // Check if member id is the same as the current user ID
           final isSelf = member.id == _currentUserId;
-  
+
           return ListTile(
             leading: const Icon(Icons.person),
             title: Text(member.name),
-            subtitle: Text(
-              isSelf 
+            subtitle: Text(isSelf
                 ? (isOwner ? 'You (Owner)' : 'You (Member)')
-                : (member.id == _team!.ownerId ? 'Owner' : 'Member')
-            ),
+                : (member.id == _team!.ownerId ? 'Owner' : 'Member')),
             trailing: isOwner && !isSelf
                 ? IconButton(
                     icon: const Icon(Icons.person_remove, color: Colors.red),
@@ -346,11 +339,23 @@ class _TeamPageState extends State<TeamPage> {
         },
       ),
       // Show an "add member" button only for the owner
-      floatingActionButton: isOwner 
-          ? FloatingActionButton(
-              onPressed: _showAddMemberDialog,
-              child: const Icon(Icons.person_add),
-            ) 
+     floatingActionButton: isOwner
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FloatingActionButton(
+                  onPressed: () => context.push('/teams/${widget.teamId}/events/create'),
+                  backgroundColor: Colors.blue[400],
+                  child: const Icon(Icons.event),
+                ),
+                const SizedBox(height: 16),
+                FloatingActionButton(
+                  onPressed: _showAddMemberDialog,
+                  backgroundColor: Colors.blue[400],
+                  child: const Icon(Icons.person_add),
+                ),
+              ],
+            )
           : null,
     );
   }
