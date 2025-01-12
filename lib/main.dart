@@ -4,9 +4,10 @@ import 'package:coordimate/pages/home.dart';
 // import 'package:coordimate/pages/teams.dart';
 // import 'package:coordimate/pages/all_teams.dart';
 import 'package:coordimate/pages/my_teams.dart';
+import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'pages/login.dart';  // Import the login page
+import 'pages/login.dart';  
 import 'pages/team.dart';
 import 'models/team.dart';
 
@@ -14,7 +15,25 @@ void main() {
   runApp(const MyApp());
 }
 
-/// The route configuration.
+// Scaffold wrapper navbar bottom widget
+class ScaffoldWithNavBar extends StatelessWidget {
+  final Widget child;
+
+  const ScaffoldWithNavBar({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: const BottomNavBar(),
+    );
+  }
+}
+
+// Update router
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
@@ -22,14 +41,20 @@ final GoRouter _router = GoRouter(
       path: '/',
       builder: ( context, state) => const LoginPage(),
     ),
-    GoRoute(
-      path: '/home',
-      builder: ( context, state) => const HomePage(),
+    ShellRoute(
+      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: ( context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: '/myteams',
+          builder: ( context, state) => const MyTeamsPage(),
+        ),
+      ],
     ),
-    GoRoute(
-      path: '/myteams',
-      builder: ( context, state) => const MyTeamsPage(),
-    ),
+    // Keep other routes outside shell route
     GoRoute(
       path: '/teams/create',
       builder: ( context, state) => const CreateTeamPage(),

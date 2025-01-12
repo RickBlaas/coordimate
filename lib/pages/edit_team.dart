@@ -67,9 +67,7 @@ class _EditTeamPageState extends State<EditTeamPage> {
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Error updating team: $e')),
         );
-      } finally {
-        setState(() => _isLoading = false);
-      }
+      } 
     } 
     
   }
