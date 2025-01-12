@@ -52,7 +52,6 @@ class EventService {
     }
   }
 
-  // POST /events
   Future<Event> createEvent(Event event) async {
     final token = await storage.read(key: 'jwt');
     if (token == null) throw Exception('No authentication token found');
@@ -63,17 +62,11 @@ class EventService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'title': event.title,
-        'description': event.description,
-        'location': event.location,
-        'teamId': event.teamId,
-      }),
+      body: jsonEncode(event.toJson()),
     );
 
     if (response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      return Event.fromJson(jsonResponse['data']);
+      return Event.fromJson(jsonDecode(response.body)['data']);
     } else {
       throw Exception('Failed to create event: ${response.statusCode}');
     }

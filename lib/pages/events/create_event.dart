@@ -20,6 +20,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
   final _locationController = TextEditingController();
   bool _isLoading = false;
 
+  Map<String, double> _parseLocation(String location) {
+    final parts = location.split(',');
+    if (parts.length != 2) {
+      throw FormatException('Invalid location format');
+    }
+    final latitude = double.parse(parts[0].trim());
+    final longitude = double.parse(parts[1].trim());
+    return {'latitude': latitude, 'longitude': longitude};
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -42,7 +52,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
           teamId: widget.teamId,
           title: _titleController.text,
           description: _descriptionController.text,
-          location: _locationController.text,
+          location: _parseLocation(_locationController.text),
+          datetimeStart: DateTime.now(), // Replace with actual start datetime
+          datetimeEnd: DateTime.now().add(Duration(hours: 1)), // Replace with actual end datetime
         );
         
         await _eventService.createEvent(event);
