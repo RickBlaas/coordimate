@@ -1,11 +1,14 @@
+import 'package:coordimate/utils/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:go_router/go_router.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
-import '../services/event_service.dart'; // Add this line to import EventService
+import '../services/event_service.dart'; 
 import 'package:go_router/go_router.dart';
-import '../models/event.dart'; // Add this line to import Event
-import 'package:intl/intl.dart'; // Add this line to import DateFormat
+import '../models/event.dart'; 
+import 'package:intl/intl.dart'; 
+
 
 class TeamPage extends StatefulWidget {
   final int teamId;
@@ -35,6 +38,7 @@ class _TeamPageState extends State<TeamPage> {
     _loadData();
   }
 
+  // Cleans up adding user by user ID controller when leaving the page
   @override
   void dispose() {
     _userIdController.dispose();
@@ -71,24 +75,8 @@ class _TeamPageState extends State<TeamPage> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Member'),
-        content: Text('Remove ${member.name} from this team?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-
+    final confirmed = await CustomDialogs.removeMember(context, member.name);
+    
     // Check if the owner confirmed to remove member and widget still exists
     if (confirmed == true && mounted) {
       try {
@@ -129,35 +117,12 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to add member as an owner
   Future<void> _showAddMemberDialog() async {
-    // Manage snackbar messages and navigator
+    
+    // Manage snackbar messages
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
 
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Member'),
-        content: TextField(
-          controller: _userIdController,
-          decoration: const InputDecoration(
-            labelText: 'User ID',
-            border: OutlineInputBorder(),
-          ),
-          keyboardType: TextInputType.number,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => navigator.pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => navigator.pop(true),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
+    final confirmed = await CustomDialogs.addMember(context, _userIdController);
 
     // Check if the owner confirmed to add member and widget still exists
     if (confirmed == true && mounted) {
@@ -189,23 +154,7 @@ class _TeamPageState extends State<TeamPage> {
     final navigator = context.go;
 
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Leave Team'),
-        content: const Text('Are you sure you want to leave this team?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Leave', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    final confirmed = await CustomDialogs.leaveTeam(context);
 
     // Check if the member confirmed to leave team and widget still exists
     if (confirmed == true && mounted) {
@@ -231,23 +180,7 @@ class _TeamPageState extends State<TeamPage> {
     final navigator = context.go;
 
     // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Team'),
-        content: const Text('Are you sure you want to delete this team?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    final confirmed = await CustomDialogs.deleteTeam(context);
 
     // Check if the owner confirmed to deleten his team and widget still exists
     if (confirmed == true && mounted) {
