@@ -12,7 +12,7 @@ class TeamsService {
   // Get all teams
   Future<List<Team>> getTeams() async {
     try {
-      final token = await storage.read(key: 'jwt');  // Updated key
+      final token = await storage.read(key: 'jwt'); // Updated key
 
       if (token == null) {
         throw Exception('No authentication token found');
@@ -44,7 +44,7 @@ class TeamsService {
   Future<Team> getTeam(int teamId) async {
     try {
       final token = await storage.read(key: 'jwt');
-      
+
       if (token == null) {
         throw Exception('No authentication token found');
       }
@@ -71,7 +71,7 @@ class TeamsService {
   // Create a team
   Future<Team> createTeam(Team team) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }
@@ -100,7 +100,7 @@ class TeamsService {
   // Delete member from team
   Future<void> removeMember(int teamId, int userId) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }
@@ -124,7 +124,7 @@ class TeamsService {
   // Add member to team
   Future<void> addMember(int teamId, int userId) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }
@@ -148,7 +148,7 @@ class TeamsService {
   // Update/edit team
   Future<Team> updateTeam(Team team) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }
@@ -177,7 +177,7 @@ class TeamsService {
   // Leave team as a member
   Future<void> leaveTeam(int teamId) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }
@@ -198,7 +198,7 @@ class TeamsService {
   // Delete team
   Future<void> deleteTeam(int teamId) async {
     final token = await storage.read(key: 'jwt');
-    
+
     if (token == null) {
       throw Exception('No authentication token found');
     }

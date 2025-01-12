@@ -4,10 +4,15 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
+import '../services/event_service.dart'; 
+import 'package:go_router/go_router.dart';
+import '../models/event.dart'; 
+import 'package:intl/intl.dart'; 
+
 
 class TeamPage extends StatefulWidget {
   final int teamId;
-  
+
   const TeamPage({super.key, required this.teamId});
 
   @override
@@ -16,6 +21,7 @@ class TeamPage extends StatefulWidget {
 
 class _TeamPageState extends State<TeamPage> {
   // Services and controllers
+  final _eventService = EventService(); 
   final _teamsService = TeamsService();
   final _storage = const FlutterSecureStorage();
   final _userIdController = TextEditingController();
@@ -24,7 +30,8 @@ class _TeamPageState extends State<TeamPage> {
   Team? _team;
   bool _isLoading = true;
   int? _currentUserId;
-  
+  List<Event> _events = [];
+
   @override
   void initState() {
     super.initState();
@@ -38,7 +45,7 @@ class _TeamPageState extends State<TeamPage> {
     super.dispose();
   }
 
-  // Load team details 
+  // Load team details
   Future<void> _loadData() async {
     try {
       // Get current user ID and put it in _currentUserId
@@ -47,9 +54,14 @@ class _TeamPageState extends State<TeamPage> {
 
       // Fetch team details from TeamsService API
       final team = await _teamsService.getTeam(widget.teamId);
+      final events = await _eventService.getEvents();
       
+      // Filter events for current team
+      final teamEvents = events.where((event) => event.teamId == widget.teamId).toList();
+
       setState(() {
         _team = team;
+        _events = teamEvents;
         _isLoading = false;
       });
     } catch (e) {
@@ -59,7 +71,6 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to remove member as an owner
   Future<void> _removeMember(TeamMember member) async {
-
     // Manage snackbar messages
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -71,7 +82,7 @@ class _TeamPageState extends State<TeamPage> {
       try {
         // Call API to remove member
         await _teamsService.removeMember(widget.teamId, member.id);
-        
+
         // Refresh team data and show successful snackbar message
         _loadData();
         scaffoldMessenger.showSnackBar(
@@ -109,12 +120,12 @@ class _TeamPageState extends State<TeamPage> {
     
     // Manage snackbar messages
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    
+
     // Show confirmation dialog
     final confirmed = await CustomDialogs.addMember(context, _userIdController);
 
     // Check if the owner confirmed to add member and widget still exists
-    if (confirmed == true && mounted) {   
+    if (confirmed == true && mounted) {
       // Get user ID from input
       final userId = int.tryParse(_userIdController.text);
 
@@ -122,8 +133,8 @@ class _TeamPageState extends State<TeamPage> {
         try {
           // Call API to add member
           await _teamsService.addMember(widget.teamId, userId);
-          
-          // Refresh team data and clear input field 
+
+          // Refresh team data and clear input field
           _loadData();
           _userIdController.clear();
         } catch (e) {
@@ -138,7 +149,6 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to leave team as a member
   Future<void> _showLeaveConfirmation() async {
-    
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = context.go;
@@ -163,13 +173,12 @@ class _TeamPageState extends State<TeamPage> {
     }
   }
 
-  // Dialog to delete a team as an owner 
+  // Dialog to delete a team as an owner
   Future<void> _showDeleteConfirmation() async {
-  
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = context.go;
-    
+
     // Show confirmation dialog
     final confirmed = await CustomDialogs.deleteTeam(context);
 
@@ -180,7 +189,7 @@ class _TeamPageState extends State<TeamPage> {
         await _teamsService.deleteTeam(widget.teamId);
 
         // Navigate back to my teams list
-        navigator('/myteams'); 
+        navigator('/myteams');
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
@@ -202,7 +211,7 @@ class _TeamPageState extends State<TeamPage> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-  
+
     // Show error message if team not found
     if (_team == null) {
       return Scaffold(
@@ -216,7 +225,7 @@ class _TeamPageState extends State<TeamPage> {
 
     // Check if current user is team owner
     final isOwner = _team!.ownerId == _currentUserId;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -239,7 +248,7 @@ class _TeamPageState extends State<TeamPage> {
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: _showDeleteConfirmation,
             ),
-          ] 
+          ]
           // Show leave button only for members
           else if (_team!.members.any((m) => m.id == _currentUserId)) ...[
             IconButton(
@@ -249,38 +258,93 @@ class _TeamPageState extends State<TeamPage> {
           ],
         ],
       ),
-      // List of team members
-      body: ListView.builder(
-        itemCount: _team!.members.length,
-        itemBuilder: (context, index) {
-
-          final member = _team!.members[index];
-          // Check if member id is the same as the current user ID
-          final isSelf = member.id == _currentUserId;
-  
-          return ListTile(
-            leading: const Icon(Icons.person),
-            title: Text(member.name),
-            subtitle: Text(
-              isSelf 
-                ? (isOwner ? 'You (Owner)' : 'You (Member)')
-                : (member.id == _team!.ownerId ? 'Owner' : 'Member')
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Members section
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Members', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
-            trailing: isOwner && !isSelf
-                ? IconButton(
-                    icon: const Icon(Icons.person_remove, color: Colors.red),
-                    onPressed: () => _removeMember(member),
-                  )
-                : null,
-          );
-        },
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _team!.members.length,
+              itemBuilder: (context, index) {
+                final member = _team!.members[index];
+                // Check if member id is the same as the current user ID
+                final isSelf = member.id == _currentUserId;
+
+                return ListTile(
+                  leading: const Icon(Icons.person),
+                  title: Text(member.name),
+                  subtitle: Text(isSelf
+                      ? (isOwner ? 'You (Owner)' : 'You (Member)')
+                      : (member.id == _team!.ownerId ? 'Owner' : 'Member')),
+                  trailing: isOwner && !isSelf
+                      ? IconButton(
+                          icon: const Icon(Icons.person_remove, color: Colors.red),
+                          onPressed: () => _removeMember(member),
+                        )
+                      : null,
+                );
+              },
+            ),
+            
+            // Events section
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Events', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _events.length,
+              itemBuilder: (context, index) {
+                final event = _events[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text(event.title),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(event.description),
+                        const SizedBox(height: 8),
+                        Text('Start: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeStart.toLocal())}'),
+                        Text('End: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeEnd.toLocal())}'),
+                      ],
+                    ),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
-      // Show an "add member" button only for the owner
-      floatingActionButton: isOwner 
-          ? FloatingActionButton(
-              onPressed: _showAddMemberDialog,
-              child: const Icon(Icons.person_add),
-            ) 
+      floatingActionButton: isOwner
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // add event button for team owner
+                FloatingActionButton(
+                  onPressed: () =>
+                      context.push('/teams/${widget.teamId}/events/create'),
+                  backgroundColor: Colors.blue[400],
+                  child: const Icon(Icons.event),
+                ),
+                const SizedBox(height: 16),
+                
+                // Show an "add member" button only for the owner
+                FloatingActionButton(
+                  onPressed: _showAddMemberDialog,
+                  backgroundColor: Colors.blue[400],
+                  child: const Icon(Icons.person_add),
+                ),
+              ],
+            )
           : null,
     );
   }
