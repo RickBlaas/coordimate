@@ -8,7 +8,7 @@ import 'package:coordimate/pages/events/create_event.dart';
 import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'pages/login.dart';  
+import 'pages/login.dart';
 
 import 'pages/team.dart';
 import 'models/team.dart';
@@ -45,17 +45,18 @@ final GoRouter _router = GoRouter(
     ),
 
     ShellRoute(
-      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
-      routes: [
-        GoRoute(
-          path: '/home',
-          builder: ( context, state) => const HomePage(),
-        ),
-        GoRoute(
-          path: '/myteams',
-          builder: ( context, state) => const MyTeamsPage(),
-        ),
-    ),
+        builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/myteams',
+            builder: (context, state) => const MyTeamsPage(),
+          ),
+        ]),
+
     // Keep other routes outside shell route
     GoRoute(
       path: '/teams/create',

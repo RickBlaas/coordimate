@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
 import '../services/event_service.dart'; 
-import 'package:go_router/go_router.dart';
 import '../models/event.dart'; 
 import 'package:intl/intl.dart'; 
 
