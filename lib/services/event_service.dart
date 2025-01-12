@@ -62,7 +62,14 @@ class EventService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode(event.toJson()),
+      body: jsonEncode({
+        'title': event.title,
+        'description': event.description,
+        'location': event.location,
+        'teamId': event.teamId,
+        'datetimeStart': event.datetimeStart.toUtc().toIso8601String(),
+        'datetimeEnd': event.datetimeEnd.toUtc().toIso8601String(),
+      }),
     );
 
     if (response.statusCode == 201) {
@@ -86,7 +93,7 @@ class EventService {
       body: jsonEncode({
         'title': event.title,
         'description': event.description,
-        'location': event.location,
+        // 'location': event.location,
         'teamId': event.teamId,
       }),
     );

@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import '../models/team.dart';
-import '../models/event.dart';
 
 class TeamsService {
   static const String baseUrl = 'https://team-management-api.dops.tech/api/v2';
@@ -214,35 +213,6 @@ class TeamsService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete team: ${response.statusCode}');
-    }
-  }
-
-  // Create event
-  Future<Event> createEvent(Event event) async {
-    final token = await storage.read(key: 'jwt');
-
-    if (token == null) {
-      throw Exception('No authentication token found');
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/teams/${event.teamId}/events'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'title': event.title,
-        'description': event.description,
-        'location': event.location,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      final jsonResponse = jsonDecode(response.body);
-      return Event.fromJson(jsonResponse['data']);
-    } else {
-      throw Exception('Failed to create event: ${response.statusCode}');
     }
   }
 }

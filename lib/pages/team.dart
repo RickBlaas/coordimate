@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
+import '../services/event_service.dart'; // Add this line to import EventService
 import 'package:go_router/go_router.dart';
+import '../models/event.dart'; // Add this line to import Event
+import 'package:intl/intl.dart'; // Add this line to import DateFormat
 
 class TeamPage extends StatefulWidget {
   final int teamId;
@@ -15,6 +18,7 @@ class TeamPage extends StatefulWidget {
 
 class _TeamPageState extends State<TeamPage> {
   // Services and controllers
+  final _eventService = EventService(); 
   final _teamsService = TeamsService();
   final _storage = const FlutterSecureStorage();
   final _userIdController = TextEditingController();
@@ -23,6 +27,7 @@ class _TeamPageState extends State<TeamPage> {
   Team? _team;
   bool _isLoading = true;
   int? _currentUserId;
+  List<Event> _events = [];
 
   @override
   void initState() {
@@ -45,9 +50,14 @@ class _TeamPageState extends State<TeamPage> {
 
       // Fetch team details from TeamsService API
       final team = await _teamsService.getTeam(widget.teamId);
+      final events = await _eventService.getEvents();
+      
+      // Filter events for current team
+      final teamEvents = events.where((event) => event.teamId == widget.teamId).toList();
 
       setState(() {
         _team = team;
+        _events = teamEvents;
         _isLoading = false;
       });
     } catch (e) {
@@ -315,40 +325,86 @@ class _TeamPageState extends State<TeamPage> {
           ],
         ],
       ),
-      // List of team members
-      body: ListView.builder(
-        itemCount: _team!.members.length,
-        itemBuilder: (context, index) {
-          final member = _team!.members[index];
-          // Check if member id is the same as the current user ID
-          final isSelf = member.id == _currentUserId;
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Members section
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Members', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _team!.members.length,
+              itemBuilder: (context, index) {
+                final member = _team!.members[index];
+                // Check if member id is the same as the current user ID
+                final isSelf = member.id == _currentUserId;
 
-          return ListTile(
-            leading: const Icon(Icons.person),
-            title: Text(member.name),
-            subtitle: Text(isSelf
-                ? (isOwner ? 'You (Owner)' : 'You (Member)')
-                : (member.id == _team!.ownerId ? 'Owner' : 'Member')),
-            trailing: isOwner && !isSelf
-                ? IconButton(
-                    icon: const Icon(Icons.person_remove, color: Colors.red),
-                    onPressed: () => _removeMember(member),
-                  )
-                : null,
-          );
-        },
+                return ListTile(
+                  leading: const Icon(Icons.person),
+                  title: Text(member.name),
+                  subtitle: Text(isSelf
+                      ? (isOwner ? 'You (Owner)' : 'You (Member)')
+                      : (member.id == _team!.ownerId ? 'Owner' : 'Member')),
+                  trailing: isOwner && !isSelf
+                      ? IconButton(
+                          icon: const Icon(Icons.person_remove, color: Colors.red),
+                          onPressed: () => _removeMember(member),
+                        )
+                      : null,
+                );
+              },
+            ),
+            
+            // Events section
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Events', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _events.length,
+              itemBuilder: (context, index) {
+                final event = _events[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text(event.title),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(event.description),
+                        const SizedBox(height: 8),
+                        Text('Start: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeStart.toLocal())}'),
+                        Text('End: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeEnd.toLocal())}'),
+                      ],
+                    ),
+                    isThreeLine: true,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
-      // Show an "add member" button only for the owner
-     floatingActionButton: isOwner
+      floatingActionButton: isOwner
           ? Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // add event button for team owner
                 FloatingActionButton(
-                  onPressed: () => context.push('/teams/${widget.teamId}/events/create'),
+                  onPressed: () =>
+                      context.push('/teams/${widget.teamId}/events/create'),
                   backgroundColor: Colors.blue[400],
                   child: const Icon(Icons.event),
                 ),
                 const SizedBox(height: 16),
+                
+                // Show an "add member" button only for the owner
                 FloatingActionButton(
                   onPressed: _showAddMemberDialog,
                   backgroundColor: Colors.blue[400],
