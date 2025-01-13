@@ -45,17 +45,18 @@ final GoRouter _router = GoRouter(
     ),
 
     ShellRoute(
-        builder: (context, state, child) => ScaffoldWithNavBar(child: child),
-        routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const HomePage(),
-          ),
-          GoRoute(
-            path: '/myteams',
-            builder: (context, state) => const MyTeamsPage(),
-          ),
-        ]),
+      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          path: '/myteams',
+          builder: (context, state) => const MyTeamsPage(),
+        ),
+      ]
+    ),
 
     // Keep other routes outside shell route
     GoRoute(

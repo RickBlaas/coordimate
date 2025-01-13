@@ -2,6 +2,7 @@ import 'package:coordimate/utils/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
 import '../services/event_service.dart'; 
@@ -46,16 +47,26 @@ class _TeamPageState extends State<TeamPage> {
 
   // Load team details
   Future<void> _loadData() async {
+    final logger = Logger();
     try {
-      // Get current user ID and put it in _currentUserId
       final userIdStr = await _storage.read(key: 'user_id');
       _currentUserId = int.parse(userIdStr ?? '0');
 
-      // Fetch team details from TeamsService API
-      final team = await _teamsService.getTeam(widget.teamId);
-      final events = await _eventService.getEvents();
       
-      // Filter events for current team
+
+      logger.d('Loading team with ID: ${widget.teamId}'); // Debug log
+      final team = await _teamsService.getTeam(widget.teamId);
+      
+      // Debug logs for team data
+      logger.d('Team found: ${team.name}');
+      logger.d('Team owner: ${team.ownerId}');
+      logger.d('Number of members: ${team.members.length}');
+      logger.d('Members:');
+      for (var member in team.members) {
+        logger.d('- ID: ${member.id}, Name: ${member.name}');
+      }
+
+      final events = await _eventService.getEvents();
       final teamEvents = events.where((event) => event.teamId == widget.teamId).toList();
 
       setState(() {
@@ -64,6 +75,7 @@ class _TeamPageState extends State<TeamPage> {
         _isLoading = false;
       });
     } catch (e) {
+      logger.d('Error loading team: $e'); // Debug error log
       setState(() => _isLoading = false);
     }
   }

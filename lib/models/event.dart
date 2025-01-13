@@ -28,9 +28,12 @@ class Event {
       description: json['description'] as String,
       datetimeStart: DateTime.parse(json['datetimeStart'] as String),
       datetimeEnd: DateTime.parse(json['datetimeEnd'] as String),
-      location: Map<String, double>.from(json['location'] as Map),
-      metadata: json['metadata'] as Map<String, dynamic>? ??
-          {'Icon': 'calendar_today'},
+      // Handle possible int values for location
+      location: {
+        'latitude': (json['location']?['latitude'] ?? 0).toDouble(),
+        'longitude': (json['location']?['longitude'] ?? 0).toDouble(),
+      },
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 }
