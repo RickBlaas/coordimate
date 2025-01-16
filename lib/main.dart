@@ -1,18 +1,23 @@
 import 'package:coordimate/pages/create_team.dart';
 import 'package:coordimate/pages/edit_team.dart';
 import 'package:coordimate/pages/home.dart';
+// Add this line to import EventDetailsPage
+
 // import 'package:coordimate/pages/teams.dart';
 // import 'package:coordimate/pages/all_teams.dart';
 import 'package:coordimate/pages/my_teams.dart';
 import 'package:coordimate/pages/events/create_event.dart';
 import 'package:coordimate/widgets/navbar/desktop_nav.dart';
 import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
+import 'package:coordimate/pages/events/edit_event.dart';
+import 'package:coordimate/pages/events/event_details.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'pages/login.dart';
 
 import 'pages/team.dart';
 import 'models/team.dart';
+import 'models/event.dart'; // Add this line to import the Event type
 
 void main() {
   runApp(const MyApp());
@@ -58,47 +63,59 @@ final GoRouter _router = GoRouter(
       path: '/',
       builder: (context, state) => const LoginPage(),
     ),
-
     ShellRoute(
-      builder: (context, state, child) => ScaffoldWithNavBar(child: child),
-      routes: [
-        GoRoute(
-          path: '/home',
-          builder: (context, state) => const HomePage(),
-        ),
-        GoRoute(
-          path: '/myteams',
-          builder: (context, state) => const MyTeamsPage(),
-        ),
-        GoRoute(
-          path: '/teams/create',
-          builder: (context, state) => const CreateTeamPage(),
-        ),
-        GoRoute(
-          path: '/teams/:id',
-          builder: (context, state) {
-            final teamId = int.parse(state.pathParameters['id']!);
-            return TeamPage(teamId: teamId);
-          },
-        ),
-        GoRoute(
-          path: '/teams/:id/edit',
-          builder: (context, state) {
-            final team = state.extra as Team;
-            return EditTeamPage(team: team);
-          },
-        ),
-        GoRoute(
-          path: '/teams/:teamId/events/create',
-          builder: (context, state) {
-            final teamId = int.parse(state.pathParameters['teamId']!);
-            return CreateEventPage(teamId: teamId);
-          },
-        ),
-      ]
-    ),
-
-    
+        builder: (context, state, child) => ScaffoldWithNavBar(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/myteams',
+            builder: (context, state) => const MyTeamsPage(),
+          ),
+          // Keep other routes outside shell route
+          GoRoute(
+            path: '/teams/create',
+            builder: (context, state) => const CreateTeamPage(),
+          ),
+          GoRoute(
+            path: '/teams/:id',
+            builder: (context, state) {
+              final teamId = int.parse(state.pathParameters['id']!);
+              return TeamPage(teamId: teamId);
+            },
+          ),
+          GoRoute(
+            path: '/teams/:id/edit',
+            builder: (context, state) {
+              final team = state.extra as Team;
+              return EditTeamPage(team: team);
+            },
+          ),
+          GoRoute(
+            path: '/teams/:teamId/events/create',
+            builder: (context, state) {
+              final teamId = int.parse(state.pathParameters['teamId']!);
+              return CreateEventPage(teamId: teamId);
+            },
+          ),
+          // Add new route
+          GoRoute(
+            path: '/events/:id',
+            builder: (context, state) {
+              final event = state.extra as Event;
+              return EventDetailsPage(event: event);
+            },
+          ),
+          GoRoute(
+            path: '/teams/events/:id/edit',
+            builder: (context, state) {
+              final event = state.extra as Event;
+              return EditEventPage(event: event);
+            },
+          ),
+        ]),
   ],
 );
 

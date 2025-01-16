@@ -5,10 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import '../models/team.dart';
 import '../services/teams_service.dart';
-import '../services/event_service.dart'; 
-import '../models/event.dart'; 
-import 'package:intl/intl.dart'; 
-
+import '../services/event_service.dart';
+import '../models/event.dart';
+import 'package:intl/intl.dart';
 
 class TeamPage extends StatefulWidget {
   final int teamId;
@@ -21,7 +20,7 @@ class TeamPage extends StatefulWidget {
 
 class _TeamPageState extends State<TeamPage> {
   // Services and controllers
-  final _eventService = EventService(); 
+  final _eventService = EventService();
   final _teamsService = TeamsService();
   final _storage = const FlutterSecureStorage();
   final _userIdController = TextEditingController();
@@ -52,11 +51,9 @@ class _TeamPageState extends State<TeamPage> {
       final userIdStr = await _storage.read(key: 'user_id');
       _currentUserId = int.parse(userIdStr ?? '0');
 
-      
-
       logger.d('Loading team with ID: ${widget.teamId}'); // Debug log
       final team = await _teamsService.getTeam(widget.teamId);
-      
+
       // Debug logs for team data
       logger.d('Team found: ${team.name}');
       logger.d('Team owner: ${team.ownerId}');
@@ -67,7 +64,8 @@ class _TeamPageState extends State<TeamPage> {
       }
 
       final events = await _eventService.getEvents();
-      final teamEvents = events.where((event) => event.teamId == widget.teamId).toList();
+      final teamEvents =
+          events.where((event) => event.teamId == widget.teamId).toList();
 
       setState(() {
         _team = team;
@@ -87,7 +85,7 @@ class _TeamPageState extends State<TeamPage> {
 
     // Show confirmation dialog
     final confirmed = await CustomDialogs.removeMember(context, member.name);
-    
+
     // Check if the owner confirmed to remove member and widget still exists
     if (confirmed == true && mounted) {
       try {
@@ -128,7 +126,6 @@ class _TeamPageState extends State<TeamPage> {
 
   // Dialog to add member as an owner
   Future<void> _showAddMemberDialog() async {
-    
     // Manage snackbar messages
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -205,6 +202,24 @@ class _TeamPageState extends State<TeamPage> {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('Error deleting team: $e')),
+        );
+      }
+    }
+  }
+
+  // Add delete method
+  Future<void> _deleteEvent(Event event) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    final confirmed = await CustomDialogs.deleteEvent(context);
+    
+    if (confirmed == true && mounted) {
+      try {
+        await _eventService.deleteEvent(event.id!);
+        _loadData();
+      } catch (e) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error deleting event: $e')),
         );
       }
     }
@@ -356,18 +371,20 @@ class _TeamPageState extends State<TeamPage> {
                       : (member.id == _team!.ownerId ? 'Owner' : 'Member')),
                   trailing: isOwner && !isSelf
                       ? IconButton(
-                          icon: const Icon(Icons.person_remove, color: Colors.red),
+                          icon: const Icon(Icons.person_remove,
+                              color: Colors.red),
                           onPressed: () => _removeMember(member),
                         )
                       : null,
                 );
               },
             ),
-            
+
             // Events section
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Events', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              child: Text('Events',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
             ListView.builder(
               shrinkWrap: true,
@@ -376,7 +393,8 @@ class _TeamPageState extends State<TeamPage> {
               itemBuilder: (context, index) {
                 final event = _events[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(event.title),
                     subtitle: Column(
@@ -384,10 +402,45 @@ class _TeamPageState extends State<TeamPage> {
                       children: [
                         Text(event.description),
                         const SizedBox(height: 8),
-                        Text('Start: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeStart.toLocal())}'),
-                        Text('End: ${DateFormat('dd-MM-yyyy HH:mm').format(event.datetimeEnd.toLocal())}'),
+                        Text(
+                            'Start: ${DateFormat('yyyy-MM-dd HH:mm').format(event.datetimeStart.toLocal())}'),
+                        Text(
+                            'End: ${DateFormat('yyyy-MM-dd HH:mm').format(event.datetimeEnd.toLocal())}'),
                       ],
                     ),
+                    onTap: () => context.push('/events/${event.id}', extra: event),
+                    trailing: isOwner
+                        ? SizedBox(
+                            width: 80, // Fixed width for buttons
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  key: ValueKey('edit_event_${event.id}'),
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () async {
+                                    final navigator = context.push;
+                                    final eventToEdit =
+                                        await _eventService.getEvent(event.id!);
+                                    if (mounted) {
+                                      final updated = await navigator<bool>(
+                                          '/teams/events/${event.id}/edit',
+                                          extra: eventToEdit);
+                                      if (updated == true) {
+                                        _loadData();
+                                      }
+                                    }
+                                  },
+                                ),
+                                IconButton(
+                                  key: ValueKey('delete_event_${event.id}'),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _deleteEvent(event),
+                                ),
+                              ],
+                            ),
+                          )
+                        : null,
                     isThreeLine: true,
                   ),
                 );
@@ -402,13 +455,17 @@ class _TeamPageState extends State<TeamPage> {
               children: [
                 // add event button for team owner
                 FloatingActionButton(
-                  onPressed: () =>
-                      context.push('/teams/${widget.teamId}/events/create'),
+                  onPressed: () async {
+                    final updated = await context.push<bool>('/teams/${widget.teamId}/events/create');
+                    if (updated == true) {
+                      _loadData();
+                    }
+                  },
                   backgroundColor: Colors.blue[400],
                   child: const Icon(Icons.event),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Show an "add member" button only for the owner
                 FloatingActionButton(
                   onPressed: _showAddMemberDialog,

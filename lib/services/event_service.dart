@@ -91,10 +91,13 @@ class EventService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'title': event.title,
-        'description': event.description,
-        // 'location': event.location,
-        'teamId': event.teamId,
+      'title': event.title,
+      'description': event.description,
+      'teamId': event.teamId,
+      'datetimeStart': event.datetimeStart.toUtc().toIso8601String(),
+      'datetimeEnd': event.datetimeEnd.toUtc().toIso8601String(),
+      'location': event.location,
+      'metadata': event.metadata ?? {'Icon': 'calendar_today'},
       }),
     );
 

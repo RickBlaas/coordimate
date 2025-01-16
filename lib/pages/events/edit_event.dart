@@ -2,42 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/event_service.dart';
 import '../../models/event.dart';
+import 'package:intl/intl.dart';
 
-class CreateEventPage extends StatefulWidget {
-  final int teamId;
+class EditEventPage extends StatefulWidget {
+  final Event event;
 
-  const CreateEventPage({super.key, required this.teamId});
+  const EditEventPage({super.key, required this.event});
 
   @override
-  State<CreateEventPage> createState() => _CreateEventPageState();
+  State<EditEventPage> createState() => _EditEventPageState();
 }
 
-class _CreateEventPageState extends State<CreateEventPage> {
-  final _eventService = EventService();
+class _EditEventPageState extends State<EditEventPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(hours: 1));
+  // final _locationController = TextEditingController();
+  late DateTime _startDate;
+  late DateTime _endDate;
   bool _isLoading = false;
 
-  Map<String, double> _parseLocation(String location) {
-    final parts = location.split(',');
-    if (parts.length != 2) {
-      throw const FormatException('Invalid location format');
-    }
-    final latitude = double.parse(parts[0].trim());
-    final longitude = double.parse(parts[1].trim());
-    return {'latitude': latitude, 'longitude': longitude};
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.event.title;
+    _descriptionController.text = widget.event.description;
+    _startDate = widget.event.datetimeStart;
+    _endDate = widget.event.datetimeEnd;
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     super.dispose();
+  }
+
+  Future<DateTime?> showDateTimePicker({
+    required BuildContext context,
+    required DateTime initialDate,
+    required DateTime firstDate,
+    required DateTime lastDate,
+  }) async {
+    final DateTime? date = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+    if (date == null) return null;
+
+    final TimeOfDay? time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+    );
+    if (time == null) return null;
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
@@ -71,35 +98,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
     }
   }
 
-  Future<DateTime?> showDateTimePicker({
-    required BuildContext context,
-    required DateTime initialDate,
-    required DateTime firstDate,
-    required DateTime lastDate,
-  }) async {
-    final DateTime? date = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: firstDate,
-      lastDate: lastDate,
-    );
-    if (date == null) return null;
-
-    final TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initialDate),
-    );
-    if (time == null) return null;
-
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute,
-    );
-  }
-
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -110,19 +108,22 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     if (mounted) {
       try {
-        final event = Event(
-          teamId: widget.teamId,
+        final updatedEvent = Event(
+          id: widget.event.id,
+          teamId: widget.event.teamId,
           title: _titleController.text,
           description: _descriptionController.text,
           datetimeStart: _startDate,
           datetimeEnd: _endDate,
+          location: widget.event.location, 
+          metadata: widget.event.metadata, 
         );
 
-        await _eventService.createEvent(event);
+        await EventService().updateEvent(updatedEvent);
         navigator;
       } catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Error creating event: $e')),
+          SnackBar(content: Text('Error updating event: $e')),
         );
       } finally {
         setState(() => _isLoading = false);
@@ -135,13 +136,12 @@ class _CreateEventPageState extends State<CreateEventPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
+          key: ValueKey('back_button_${widget.event.id}'),
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title:
-            const Text('Create Event', style: TextStyle(color: Colors.white)),
+        title: const Text('Edit Event', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue[400],
-        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -156,9 +156,8 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   labelText: 'Event Title',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter an event title'
-                    : null,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Required' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -168,26 +167,14 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter a description'
-                    : null,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Required' : null,
               ),
-              const SizedBox(height: 16),
-              // TextFormField(
-              //   controller: _locationController,
-              //   decoration: const InputDecoration(
-              //     labelText: 'Location',
-              //     border: OutlineInputBorder(),
-              //   ),
-              //   validator: (value) => (value == null || value.isEmpty)
-              //       ? 'Please enter a location'
-              //       : null,
-              // ),
               const SizedBox(height: 16),
               ListTile(
                 title: const Text('Start Date & Time'),
                 subtitle: Text(
-                  _startDate.toLocal().toString(),
+                  DateFormat('yyyy-MM-dd HH:mm').format(_startDate),
                   style: const TextStyle(fontSize: 14),
                 ),
                 trailing: const Icon(Icons.calendar_today),
@@ -197,7 +184,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
               ListTile(
                 title: const Text('End Date & Time'),
                 subtitle: Text(
-                  _endDate.toLocal().toString(),
+                  DateFormat('yyyy-MM-dd HH:mm').format(_endDate),
                   style: const TextStyle(fontSize: 14),
                 ),
                 trailing: const Icon(Icons.calendar_today),
@@ -208,7 +195,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 onPressed: _isLoading ? null : _submitForm,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Create Event'),
+                    : const Text('Save Changes'),
               ),
             ],
           ),
