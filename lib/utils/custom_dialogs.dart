@@ -55,4 +55,17 @@ class CustomDialogs {
       )
     );
   }
+
+  // Delete event dialog
+  static Future<bool?> deleteEvent(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => const ConfirmAlertDialog(
+        title: 'Delete Event', 
+        contentText: 'Are you sure you want to delete this event?', 
+        confirmTextBtn: 'Delete', 
+        confirmColorBtn: Colors.red,
+      )
+    );
+  }
 }
