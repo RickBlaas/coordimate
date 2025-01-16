@@ -7,6 +7,7 @@ import 'package:coordimate/pages/home.dart';
 // import 'package:coordimate/pages/all_teams.dart';
 import 'package:coordimate/pages/my_teams.dart';
 import 'package:coordimate/pages/events/create_event.dart';
+import 'package:coordimate/widgets/navbar/desktop_nav.dart';
 import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
 import 'package:coordimate/pages/events/edit_event.dart';
 import 'package:coordimate/pages/events/event_details.dart';
@@ -33,9 +34,23 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: const BottomNavBar(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 600) {  // Desktop layout
+          return Scaffold(
+            appBar: const PreferredSize(
+              preferredSize: Size.fromHeight(kToolbarHeight),
+              child: DesktopNavBar(),
+            ),
+            body: child,
+          );
+        } else {  // Mobile layout
+          return Scaffold(
+            body: child,
+            bottomNavigationBar: const BottomNavBar(),
+          );
+        }
+      },
     );
   }
 }

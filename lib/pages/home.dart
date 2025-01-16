@@ -28,8 +28,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Check desktop screen fo the appbar
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: isDesktop ? null : AppBar(
         title: const Text('Homepagina', style: TextStyle(
           color: Colors.white,
         )),
