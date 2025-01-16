@@ -159,7 +159,7 @@ class _TeamPageState extends State<TeamPage> {
   Future<void> _showLeaveConfirmation() async {
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.pop(true);
+    final navigator = context.pop;
 
     // Show confirmation dialog
     final confirmed = await CustomDialogs.leaveTeam(context);
@@ -171,7 +171,7 @@ class _TeamPageState extends State<TeamPage> {
         await _teamsService.leaveTeam(widget.teamId);
 
         // Navigate back to my teams list
-        navigator;
+        navigator(true);
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
@@ -185,7 +185,7 @@ class _TeamPageState extends State<TeamPage> {
   Future<void> _showDeleteConfirmation() async {
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.pop(true);
+    final navigator = context.pop;
 
     // Show confirmation dialog
     final confirmed = await CustomDialogs.deleteTeam(context);
@@ -195,6 +195,7 @@ class _TeamPageState extends State<TeamPage> {
       try {
         // Call API to delete team
         await _teamsService.deleteTeam(widget.teamId);
+        navigator(true);
 
         // Navigate back to my teams list
         navigator;
@@ -336,7 +337,7 @@ class _TeamPageState extends State<TeamPage> {
                           extra: _team,
                         );
                         if (updated == true) {
-                          _loadData(); // Refresh data when returning from edit
+                          _loadData();
                         }
                       },
                     ),
