@@ -45,7 +45,7 @@ class _EditTeamPageState extends State<EditTeamPage> {
 
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.pop();
+    final navigator = context.pop(true);
     
     setState(() => _isLoading = true);
 
@@ -74,8 +74,16 @@ class _EditTeamPageState extends State<EditTeamPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Check desktop screen fo the appbar
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
-      appBar: AppBar(
+      // Show app bar only on mobile
+      appBar: isDesktop ? null : AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Edit Team', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue[400],
       ),
@@ -86,6 +94,21 @@ class _EditTeamPageState extends State<EditTeamPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Back button on desktop
+              if (isDesktop)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 32),
+                  child: Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                        label: Text('Back', style: TextStyle(color: Colors.blue[400])),
+                      ),
+                    ],
+                  ),
+                ),
+
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
