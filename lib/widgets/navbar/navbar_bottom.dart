@@ -7,8 +7,8 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: _calculateSelectedIndex(context),
-      onTap: (index) => _onItemTapped(index, context),
+      currentIndex: calculateSelectedIndex(context),
+      onTap: (index) => onItemTapped(index, context),
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -22,14 +22,17 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  int _calculateSelectedIndex(BuildContext context) {
+  int calculateSelectedIndex(BuildContext context) {
+    // Get current location
     final String location = GoRouterState.of(context).uri.path;
+
     if (location == '/home') return 0;
-    if (location == '/myteams') return 1;
+    if (location.startsWith('/teams') || location == '/myteams') return 1;
     return 0;
   }
 
-  void _onItemTapped(int index, BuildContext context) {
+  // Update onItemTapped method
+  void onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
         context.go('/home');

@@ -162,7 +162,7 @@ class _TeamPageState extends State<TeamPage> {
   Future<void> _showLeaveConfirmation() async {
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.go;
+    final navigator = context.pop(true);
 
     // Show confirmation dialog
     final confirmed = await CustomDialogs.leaveTeam(context);
@@ -174,7 +174,7 @@ class _TeamPageState extends State<TeamPage> {
         await _teamsService.leaveTeam(widget.teamId);
 
         // Navigate back to my teams list
-        navigator('/myteams');
+        navigator;
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
@@ -188,7 +188,7 @@ class _TeamPageState extends State<TeamPage> {
   Future<void> _showDeleteConfirmation() async {
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.go;
+    final navigator = context.pop(true);
 
     // Show confirmation dialog
     final confirmed = await CustomDialogs.deleteTeam(context);
@@ -200,7 +200,7 @@ class _TeamPageState extends State<TeamPage> {
         await _teamsService.deleteTeam(widget.teamId);
 
         // Navigate back to my teams list
-        navigator('/myteams');
+        navigator;
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
@@ -212,11 +212,19 @@ class _TeamPageState extends State<TeamPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Check desktop screen 
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+    
     // Show loading state while fetching data
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Team Members'),
+        appBar: isDesktop ? null : AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+            color: Colors.white,
+          ),
+            // title: const Text('Team Members'),
           backgroundColor: Colors.blue[400],
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -226,8 +234,8 @@ class _TeamPageState extends State<TeamPage> {
     // Show error message if team not found
     if (_team == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Team Members'),
+        appBar: isDesktop ? null : AppBar(
+          title: const Text('Team not found'),
           backgroundColor: Colors.blue[400],
         ),
         body: const Center(child: Text('Team not found')),
@@ -238,22 +246,31 @@ class _TeamPageState extends State<TeamPage> {
     final isOwner = _team!.ownerId == _currentUserId;
 
     return Scaffold(
-      appBar: AppBar(
+      // Show app bar only on mobile
+      appBar: isDesktop ? null : AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/myteams'),
+          onPressed: () => context.pop(true),
+          color: Colors.white,
         ),
-        title: Text(_team!.name),
+        title: Text(_team!.name, style: const TextStyle(color: Colors.white)),
+        centerTitle: true,
         backgroundColor: Colors.blue[400],
         actions: [
           // Show edit and delete buttons only for the owner
           if (isOwner) ...[
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => context.push(
-                '/teams/${widget.teamId}/edit',
-                extra: _team,
-              ),
+              color: Colors.white,
+              onPressed: () async {
+                final updated = await context.push<bool>(
+                  '/teams/${widget.teamId}/edit',
+                  extra: _team,
+                );
+                if (updated == true) {
+                  _loadData(); 
+                }
+              },
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
@@ -273,10 +290,54 @@ class _TeamPageState extends State<TeamPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Members section
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Members', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            // Back button on desktop
+            if (isDesktop)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton.icon(
+                  onPressed: () => context.pop(true),
+                  icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                  label: Text('Back', style: TextStyle(color: Colors.blue[400])),
+                ),
+              ),
+
+            // Members section header with conditional actions
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Text(
+                    'Members', 
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  ),
+                  const Spacer(),
+                  // Edit and delete team buttons on desktop for the owner
+                  if (isDesktop && isOwner) ...[  
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, color: Colors.black),
+                      onPressed: () async {
+                        final updated = await context.push<bool>(
+                          '/teams/${widget.teamId}/edit',
+                          extra: _team,
+                        );
+                        if (updated == true) {
+                          _loadData(); // Refresh data when returning from edit
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: _showDeleteConfirmation,
+                    ),
+                  ] 
+                  // Leave team button on desktop for the member
+                  else if (isDesktop && _team!.members.any((m) => m.id == _currentUserId))  
+                    IconButton(
+                      icon: const Icon(Icons.exit_to_app, color: Colors.red),
+                      onPressed: _showLeaveConfirmation,
+                    ),
+                ],
+              ),
             ),
             ListView.builder(
               shrinkWrap: true,
