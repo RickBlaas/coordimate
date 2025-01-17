@@ -43,7 +43,12 @@ class ScaffoldWithNavBar extends StatelessWidget {
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: DesktopNavBar(),
             ),
-            body: child,
+            body: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200), // Like Tailwind's container
+                child: child,
+              ),
+            ),
           );
         } else {  // Mobile layout
           return Scaffold(
