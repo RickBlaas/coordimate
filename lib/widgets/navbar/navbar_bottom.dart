@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key});
@@ -7,8 +8,6 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      currentIndex: calculateSelectedIndex(context),
-      onTap: (index) => onItemTapped(index, context),
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -18,7 +17,13 @@ class BottomNavBar extends StatelessWidget {
           icon: Icon(Icons.group),
           label: 'Teams',
         ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.logout),
+          label: 'Logout',
+        ),
       ],
+      currentIndex: calculateSelectedIndex(context),
+      onTap: (index) => onItemTapped(index, context),
     );
   }
 
@@ -40,6 +45,38 @@ class BottomNavBar extends StatelessWidget {
       case 1:
         context.go('/myteams');
         break;
+      case 2:
+        _handleLogout(context);
+        break;
     }
+  }
+
+  void _handleLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                const storage = FlutterSecureStorage();
+                await storage.delete(key: 'jwt');
+                await storage.delete(key: 'user_id');
+                if (context.mounted) {
+                  context.go('/');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
