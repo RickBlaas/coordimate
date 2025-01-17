@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:coordimate/pages/create_team.dart';
 import 'package:coordimate/pages/edit_team.dart';
 import 'package:coordimate/pages/home.dart';
@@ -11,13 +14,11 @@ import 'package:coordimate/widgets/navbar/desktop_nav.dart';
 import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
 import 'package:coordimate/pages/events/edit_event.dart';
 import 'package:coordimate/pages/events/event_details.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'pages/login.dart';
 
+import 'pages/login.dart';
 import 'pages/team.dart';
 import 'models/team.dart';
-import 'models/event.dart'; // Add this line to import the Event type
+import 'models/event.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -38,8 +39,8 @@ class ScaffoldWithNavBar extends StatelessWidget {
       builder: (context, constraints) {
         if (constraints.maxWidth > 600) {  // Desktop layout
           return Scaffold(
-            appBar: const PreferredSize(
-              preferredSize: Size.fromHeight(kToolbarHeight),
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
               child: DesktopNavBar(),
             ),
             body: child,
@@ -47,7 +48,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
         } else {  // Mobile layout
           return Scaffold(
             body: child,
-            bottomNavigationBar: const BottomNavBar(),
+            bottomNavigationBar: BottomNavBar(),
           );
         }
       },

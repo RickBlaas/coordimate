@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../services/auth_service.dart';
 
 class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({super.key});
+  BottomNavBar({super.key});
+
+  final _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +32,9 @@ class BottomNavBar extends StatelessWidget {
   int calculateSelectedIndex(BuildContext context) {
     // Get current location
     final String location = GoRouterState.of(context).uri.path;
-
     if (location == '/home') return 0;
     if (location.startsWith('/teams') || location == '/myteams') return 1;
-    return 0;
+    return 2;
   }
 
   // Update onItemTapped method
@@ -66,9 +67,7 @@ class BottomNavBar extends StatelessWidget {
             TextButton(
               child: const Text('Logout', style: TextStyle(color: Colors.red)),
               onPressed: () async {
-                const storage = FlutterSecureStorage();
-                await storage.delete(key: 'jwt');
-                await storage.delete(key: 'user_id');
+                await _authService.logout();
                 if (context.mounted) {
                   context.go('/');
                 }
