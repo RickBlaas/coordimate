@@ -412,9 +412,9 @@ class _TeamPageState extends State<TeamPage> {
                     onTap: () => context.push('/events/${event.id}', extra: event),
                     trailing: isOwner
                         ? SizedBox(
-                            width: 80, // Fixed width for buttons
+                            width: 96, // Fixed width for buttons
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 IconButton(
                                   key: ValueKey('edit_event_${event.id}'),
@@ -456,6 +456,7 @@ class _TeamPageState extends State<TeamPage> {
               children: [
                 // add event button for team owner
                 FloatingActionButton(
+                  heroTag: 'add_event_fab',
                   onPressed: () async {
                     final updated = await context.push<bool>('/teams/${widget.teamId}/events/create');
                     if (updated == true) {
@@ -469,6 +470,7 @@ class _TeamPageState extends State<TeamPage> {
 
                 // Show an "add member" button only for the owner
                 FloatingActionButton(
+                  heroTag: 'add_member_fab',
                   onPressed: _showAddMemberDialog,
                   backgroundColor: Colors.blue[400],
                   child: const Icon(Icons.person_add),

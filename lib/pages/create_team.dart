@@ -27,7 +27,7 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
 
     // Manage snackbar messages and navigator
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.pop();
+    final navigator = context.pop;
     
     setState(() => _isLoading = true);
     
@@ -42,7 +42,7 @@ class _CreateTeamPageState extends State<CreateTeamPage> {
         await TeamsService().createTeam(team);
         
         // Navigate back to my teams page
-        navigator; 
+        navigator(true); 
       } catch (e) {
         // Show error snackbar message
         scaffoldMessenger.showSnackBar(
