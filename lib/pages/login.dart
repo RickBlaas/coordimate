@@ -52,7 +52,9 @@ class _LoginPageState extends State<LoginPage> {
       }
       return null; // Login successful
     } else {
-      return 'Username or password is incorrect';
+      final responseJson = jsonDecode(response.body);
+      final errors = responseJson['error'] as List;
+      return errors.first as String; 
     }
   }
 
@@ -97,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
       onSubmitAnimationCompleted: () {
         // Navigate only if the widget is still mounted
         if (mounted) {
-          context.go('/homepage');
+          context.go('/home');
         }
       },
       hideForgotPasswordButton: true,
@@ -109,6 +111,8 @@ class _LoginPageState extends State<LoginPage> {
         signupButton: 'REGISTER',
         goBackButton: 'BACK',
         confirmPasswordError: 'Passwords do not match!',
+        flushbarTitleError: 'Error', // Add this
+        flushbarTitleSuccess: 'Success', // Add this
       ),
       userValidator: (value) {
         if (value == null || value.isEmpty) {

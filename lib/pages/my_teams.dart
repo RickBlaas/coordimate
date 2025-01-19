@@ -66,6 +66,8 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
   Widget build(BuildContext context) {
     // Check desktop screen
     final isDesktop = MediaQuery.of(context).size.width > 600;
+    // Manage snackbar messages
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     return Scaffold(
       appBar: isDesktop ? null : AppBar(
@@ -74,8 +76,25 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
         centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              context.push('/teams/create');
+            onPressed: () async{
+              final shouldRefresh = await context.push<bool>('/teams/create');
+              if (shouldRefresh == true) {
+                _loadUserTeams();
+                if (mounted) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Successfully create a team'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      action: SnackBarAction(
+                        label: 'Dismiss',
+                        textColor: Colors.yellow,
+                        onPressed: () => scaffoldMessenger.hideCurrentSnackBar(),
+                      ),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Create Team', style: TextStyle(color: Colors.white)),
           ),
@@ -90,6 +109,9 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    // Manage snackbar messages
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,7 +124,26 @@ class _MyTeamsPageState extends State<MyTeamsPage> {
                 ),
                 const Spacer(),
                 FilledButton(
-                  onPressed: () => context.push('/teams/create'),
+                  onPressed: () async{
+                    final shouldRefresh = await context.push<bool>('/teams/create');
+                    if (shouldRefresh == true) {
+                      _loadUserTeams();
+                      if (mounted) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: const Text('Successfully create a team'),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            action: SnackBarAction(
+                              label: 'Dismiss',
+                              textColor: Colors.yellow,
+                              onPressed: () => scaffoldMessenger.hideCurrentSnackBar(),
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.blue[400],
                     foregroundColor: Colors.white,
