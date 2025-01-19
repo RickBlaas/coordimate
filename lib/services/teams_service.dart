@@ -6,19 +6,33 @@ import '../models/team.dart';
 
 class TeamsService {
   static const String baseUrl = 'https://team-management-api.dops.tech/api/v2';
-  final storage = const FlutterSecureStorage();
-  final logger = Logger();
+  
+  
+// Make dependencies injectable
+  final http.Client client;
+  final FlutterSecureStorage storage;
+  final Logger logger;
+
+  // Constructor with optional parameters for testing
+  TeamsService({
+    http.Client? client, 
+    FlutterSecureStorage? storage,
+    Logger? logger,
+  }) : 
+    client = client ?? http.Client(),
+    storage = storage ?? const FlutterSecureStorage(),
+    logger = logger ?? Logger();
 
   // Get all teams
   Future<List<Team>> getTeams() async {
     try {
-      final token = await storage.read(key: 'jwt'); // Updated key
+      final token = await storage.read(key: 'jwt'); 
 
       if (token == null) {
         throw Exception('No authentication token found');
       }
 
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse('$baseUrl/teams'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -49,7 +63,7 @@ class TeamsService {
         throw Exception('No authentication token found');
       }
 
-      final response = await http.get(
+      final response = await client.get(
         Uri.parse('$baseUrl/teams/$teamId'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -76,7 +90,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/teams'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -105,7 +119,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/teams/$teamId/removeUser'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -129,7 +143,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/teams/$teamId/addUser'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -153,7 +167,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.put(
+    final response = await client.put(
       Uri.parse('$baseUrl/teams/${team.id}'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -182,7 +196,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.post(
+    final response = await client.post(
       Uri.parse('$baseUrl/teams/$teamId/leave'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -203,7 +217,7 @@ class TeamsService {
       throw Exception('No authentication token found');
     }
 
-    final response = await http.delete(
+    final response = await client.delete(
       Uri.parse('$baseUrl/teams/$teamId'),
       headers: {
         'Authorization': 'Bearer $token',
