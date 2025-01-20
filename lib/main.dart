@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:coordimate/pages/create_team.dart';
-import 'package:coordimate/pages/edit_team.dart';
+import 'package:coordimate/pages/teams/create_team.dart';
+import 'package:coordimate/pages/teams/edit_team.dart';
 import 'package:coordimate/pages/home.dart';
 // Add this line to import EventDetailsPage
 
 // import 'package:coordimate/pages/teams.dart';
 // import 'package:coordimate/pages/all_teams.dart';
-import 'package:coordimate/pages/my_teams.dart';
+import 'package:coordimate/pages/teams/my_teams.dart';
 import 'package:coordimate/pages/events/create_event.dart';
 import 'package:coordimate/widgets/navbar/desktop_nav.dart';
 import 'package:coordimate/widgets/navbar/navbar_bottom.dart';
@@ -16,7 +16,7 @@ import 'package:coordimate/pages/events/edit_event.dart';
 import 'package:coordimate/pages/events/event_details.dart';
 
 import 'pages/login.dart';
-import 'pages/team.dart';
+import 'pages/teams/team.dart';
 import 'models/team.dart';
 import 'models/event.dart'; 
 

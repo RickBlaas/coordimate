@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import '../models/team.dart';
-import '../services/teams_service.dart';
+import '../../models/team.dart';
+import '../../services/teams_service.dart';
 // import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
