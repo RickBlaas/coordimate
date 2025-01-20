@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../services/teams_service.dart';
-import '../models/team.dart';
+import '../../services/teams_service.dart';
+import '../../models/team.dart';
 
-class EditTeamPage extends StatefulWidget {
-  final Team team;
-  
-  const EditTeamPage({super.key, required this.team});
+class CreateTeamPage extends StatefulWidget {
+  const CreateTeamPage({super.key});
 
   @override
-  State<EditTeamPage> createState() => _EditTeamPageState();
+  State<CreateTeamPage> createState() => _CreateTeamPageState();
 }
 
-class _EditTeamPageState extends State<EditTeamPage> {
+class _CreateTeamPageState extends State<CreateTeamPage> {
   // Form key to manage form state and validation
   final _formKey = GlobalKey<FormState>();
 
@@ -23,12 +21,38 @@ class _EditTeamPageState extends State<EditTeamPage> {
   // Loading state for API calls
   bool _isLoading = false;
 
-  // Sets initial values in form fields
-  @override
-  void initState() {
-    super.initState();
-    _nameController.text = widget.team.name;
-    _descriptionController.text = widget.team.description;
+  Future<void> _submitForm() async {
+    // Validate form
+    if (!_formKey.currentState!.validate()) return;
+
+    // Manage snackbar messages and navigator
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = context.pop;
+    
+    setState(() => _isLoading = true);
+    
+    if (mounted) {
+      try {
+        // Create a new team object with the filled in values
+        final team = Team(
+          name: _nameController.text,
+          description: _descriptionController.text,
+        );
+        // Call API to create a team
+        await TeamsService().createTeam(team);
+        
+        // Navigate back to my teams page
+        navigator(true); 
+      } catch (e) {
+        // Show error snackbar message
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error creating team: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+    
   }
 
   // Cleans up when leaving the page
@@ -39,39 +63,7 @@ class _EditTeamPageState extends State<EditTeamPage> {
     super.dispose();
   }
 
-  Future<void> _submitForm() async {
-    // Validate form
-    if (!_formKey.currentState!.validate()) return;
-
-    // Manage snackbar messages and navigator
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = context.pop(true);
-    
-    setState(() => _isLoading = true);
-
-    if (mounted) {
-      try {
-        // Create a new team object with updated filled in values
-        final updatedTeam = Team(
-          id: widget.team.id,
-          name: _nameController.text,
-          description: _descriptionController.text,
-        );
-        // Call API to edit/update a team
-        await TeamsService().updateTeam(updatedTeam);
-        
-        // Navigate back to my teams page
-        navigator;
-      } catch (e) {
-        // Show error snackbar message
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Error updating team: $e')),
-        );
-      } 
-    } 
-    
-  }
-
+  // Widget
   @override
   Widget build(BuildContext context) {
     // Check desktop screen fo the appbar
@@ -84,8 +76,9 @@ class _EditTeamPageState extends State<EditTeamPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Edit Team', style: TextStyle(color: Colors.white)),
+        title: const Text('Create Team', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue[400],
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -115,7 +108,7 @@ class _EditTeamPageState extends State<EditTeamPage> {
                   labelText: 'Team Name',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'Please enter a team name' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -125,14 +118,14 @@ class _EditTeamPageState extends State<EditTeamPage> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                validator: (value) => (value == null || value.isEmpty) ? 'Please enter a description' : null,
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _isLoading ? null : _submitForm,
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Save Changes'),
+                    : const Text('Create Team'),
               ),
             ],
           ),
